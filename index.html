@@ -438,10 +438,11 @@ const CHALL = [
 const DABEI = [["Fix dabei 🔒","gr"],["Wahrscheinlich 👍","go"],["Eher nicht 🤷",""]];
 
 /* ============ ZUSTAND ============ */
-const LEER = {name:"",spass:"",ziele:{},monate:[],dauer:"",budget:"",nogos:[],challenges:[],dabei:"",text:""};
-const EINZEL = new Set(["name","dabei","spass","dauer","budget"]);
+const LEER = {name:"",spass:[],ziele:{},monate:[],dauer:"",budget:"",nogos:[],challenges:[],dabei:"",text:""};
+const EINZEL = new Set(["name","dabei","dauer","budget"]);
 const SPEICHER = "reise27v2";
 let A = Object.assign(JSON.parse(JSON.stringify(LEER)), JSON.parse(localStorage.getItem(SPEICHER)||"{}"));
+if (!Array.isArray(A.spass)) A.spass = A.spass ? [A.spass] : [];
 if (!A.id) A.id = Math.random().toString(36).slice(2,10)+Date.now().toString(36);
 const speichern = () => localStorage.setItem(SPEICHER, JSON.stringify(A));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -465,7 +466,7 @@ let h = "";
       <img class="bg" data-img="m/${x[2]}.webp" alt=""><div class="shade-b"></div>
       <div class="lab"><div class="buch">${bu}</div><div class="t">${x[0]}</div><div class="d">${x[1]}</div></div><div class="haken"></div></button>`;
   h += `<section class="duell fx" data-q="${q}"><div class="frage"><div class="kicker">Zum Aufwärmen · nur 1 Frage</div><div class="h">${frage}</div></div>
-    ${seite(a,"A","a")}${seite(b,"B","b")}<div class="vs">VS</div><div class="tipp">A oder B tippen</div></section>`; }
+    ${seite(a,"A","a")}${seite(b,"B","b")}<div class="vs">VS</div><div class="tipp">tippen · beides geht</div></section>`; }
 h += kapitel(1,"Runde 1 · 9 Ziele + 2 Kombis","Wohin?","Bei jedem Ziel: 🔥 Top, 👍 Geht oder ❌ Nein. „Plan“ zeigt den Tagesplan.","r3");
 LAENDER.forEach((L,i) => {
   h += `<section class="land fx" data-land="${L.k}" data-ziel="${esc(L.name)}">
@@ -552,7 +553,7 @@ function zeigen() {
     b.setAttribute("aria-pressed", q==="ziel" ? zielW(b.dataset.z)===v : EINZEL.has(q) ? A[q]===v : A[q].includes(v));
   });
   document.querySelectorAll("[data-ziel]").forEach(el => { const w = zielW(el.dataset.ziel); ["top","geht","nein"].forEach(x => el.classList.toggle("w-"+x, w===x)); });
-  document.querySelectorAll(".duell").forEach(d => d.classList.toggle("gewaehlt", !!A[d.dataset.q]));
+  document.querySelectorAll(".duell").forEach(d => d.classList.toggle("gewaehlt", A[d.dataset.q].length===1));
   // Monats-Passung zu den 🔥/👍-Zielen
   const z = [...mitW("top"), ...mitW("geht")].map(x => x.name).filter(n => KAL[n]);
   MONATE.forEach((m,i) => {
@@ -681,7 +682,7 @@ $("#senden").addEventListener("click", async () => {
   if (!ZIEL) { st.textContent = "Sammel-Tabelle ist noch nicht verbunden – bitte den WhatsApp-Knopf nehmen."; return; }
   btn.disabled = true; st.textContent = "Wird gesendet …";
   const daten = {name:A.name, top:feld("top"), geht:feld("geht"), nein:feld("nein"), monate:A.monate, dauer:A.dauer, budget:A.budget, nogos:A.nogos,
-    challenges:A.challenges, spass:A.spass, dabei:A.dabei, text:A.text, id:A.id, geraet: navigator.userAgent.slice(0,120), version: 2};
+    challenges:A.challenges, spass:A.spass.length===2 ? "Beides" : (A.spass[0]||""), dabei:A.dabei, text:A.text, id:A.id, geraet: navigator.userAgent.slice(0,120), version: 2};
   try {
     const r = await fetch(ZIEL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(daten)});
     const j = await r.json();
