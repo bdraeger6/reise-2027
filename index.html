@@ -282,6 +282,35 @@ textarea:focus{outline:none;border-color:var(--go)}
 .danke p{color:var(--sand);margin-bottom:22px}
 .nochmal{margin-top:12px;width:100%;padding:14px;color:var(--grau2);font-size:14px;text-decoration:underline}
 img[data-img]{opacity:0;transition:opacity .7s}img[data-img].da{opacity:1}
+.wertung{display:grid;grid-template-columns:.85fr 1fr 1fr 1fr;gap:7px}
+.wertung.ohne{grid-template-columns:1fr 1fr 1fr}
+.wb,.wertung .mehr{padding:14px 2px;border-radius:14px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  font-family:var(--h);font-weight:800;text-transform:uppercase;font-size:17px;letter-spacing:.02em;transition:all .25s;white-space:nowrap}
+.wertung .mehr{background:rgba(14,17,19,.55)}
+.wb:active{transform:scale(.94)}
+.wb.top[aria-pressed=true]{background:var(--or);border-color:var(--or);box-shadow:0 8px 26px rgba(232,119,46,.5)}
+.wb.geht[aria-pressed=true]{background:var(--gr);border-color:var(--gr);box-shadow:0 8px 26px rgba(63,169,140,.45)}
+.wb.nein[aria-pressed=true]{background:#B8403A;border-color:#B8403A;box-shadow:0 8px 26px rgba(184,64,58,.45)}
+.land.w-nein .bg,.land.w-nein .poster,.kombi.w-nein .bg{filter:grayscale(1) brightness(.5)}
+.zaehler{font-family:var(--h);font-weight:600;letter-spacing:.14em;font-size:12px;text-transform:uppercase;color:var(--go)}
+.passt{display:block;font-size:11px;font-weight:600;color:var(--grau);margin-top:4px;text-transform:none;letter-spacing:0;font-family:var(--b)}
+.chip[aria-pressed=true] .passt{color:rgba(14,17,19,.7)}
+.bkarte .n{font-size:12px;color:var(--grau2);margin-top:6px;font-weight:600}
+.bkarte li.weg{opacity:.3;text-decoration:line-through}
+.chip.rot[aria-pressed=true]{background:#B8403A;border-color:#B8403A;box-shadow:0 8px 30px rgba(184,64,58,.45)}
+.hinweis{min-height:20px;margin-top:10px;font-size:13px;color:var(--or);font-weight:600}
+.match{display:grid;gap:10px}
+.mz{border-radius:16px;padding:14px 16px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-left:5px solid var(--gr)}
+.mz.konf{border-left-color:var(--or)}
+.mz .k{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.mz .k b{font-family:var(--h);font-weight:800;text-transform:uppercase;font-size:24px;line-height:1}
+.mz .k span{font-size:12px;font-weight:700;color:var(--grau2);white-space:nowrap}
+.mz ul{list-style:none;margin-top:6px;font-size:13.5px;color:var(--sand)}
+.mz li{padding-left:18px;position:relative;margin-top:3px}.mz li:before{content:"⚠️";position:absolute;left:0;font-size:11px;top:1px}
+.mz .ok{font-size:13.5px;color:var(--gr);font-weight:700;margin-top:6px}
+.mleer{color:var(--grau2);font-size:14px;padding:14px 0}
+.mkopf{font-family:var(--h);font-weight:800;text-transform:uppercase;font-size:22px;margin:4px 0 14px;color:var(--sand)}
+.mkopf em{font-style:normal;color:var(--go)}
 canvas#konfetti{position:fixed;inset:0;z-index:130;pointer-events:none;width:100%;height:100%}
 @media (prefers-reduced-motion:reduce){.grain{animation:none}.rv,.zeile>span{transition:none;opacity:1;transform:none}}
 </style>
@@ -320,7 +349,7 @@ canvas#konfetti{position:fixed;inset:0;z-index:130;pointer-events:none;width:100
   <h2 class="h rv" style="--i:1;font-size:clamp(54px,16vw,84px);margin:10px 0 12px">Bist du dabei?</h2>
   <div class="chips" id="dabei" style="margin-bottom:34px"></div>
   <div class="unterh rv">Noch was?</div>
-  <p class="unterp">Eigene Idee, No-Go, Wochen, die bei dir nicht gehen … alles rein.</p>
+  <p class="unterp">Eigene Idee, Wochen, die bei dir nicht gehen, Klausuren … alles rein.</p>
   <textarea id="text" placeholder="z. B. „Im August hab ich Klausuren“ oder „Island wär auch krass“"></textarea>
   <dl class="zusammen" id="zusammen"></dl>
   <button class="senden" id="senden">Abschicken 🚀</button>
@@ -350,68 +379,53 @@ const ZIEL = SKRIPT_URL || (location.hostname === "localhost" ? "/mock" : "");
 const NAMEN = ["Sascha","Maximilian","Jonas","Jannik","Niklas"];
 
 /* ============ INHALTE ============ */
-const DUELLE = [
-  ["d1","Wie sind wir unterwegs?",["Mit Tieren","Pferd oder Kamel – langsam, echt, staubig","d1a"],["Mit Motor","Jeep, Tuk-Tuk oder Zug – weit und schnell","d1b"]],
-  ["d2","Welche Landschaft?",["Wüste","Sanddünen, heiße Tage, krasser Sternenhimmel","d2a"],["Berge & Steppe","Pässe über 3.000 m, Seen, Jurten","d2b"]],
-  ["d3","Wie lange?",["Kurz & krass","ca. 1 Woche (7–8 Tage)","d3a"],["Lang & episch","2 Wochen oder mehr","d3b"]],
-  ["d4","Was steht im Mittelpunkt?",["Wildnis pur","Zelt, kein Netz, nur wir","d4a"],["Leute & Kultur","Nomaden, Gastfamilien, Märkte","d4b"]],
-  ["d5","Wie viel Geld?",["Günstig","unter ca. 1.500 € pro Person","d5a"],["Einmal im Leben","2.000 € und mehr pro Person","d5b"]],
-];
-const ARTEN = [
-  ["Reiten durch die Steppe","Tage im Sattel, Nächte in Jurten – mit Pferdeführer","Mongolei · Kirgistan · Georgien","art1"],
-  ["Wüste & Erzzug","Sahara, Kamele, Nacht im längsten Zug der Welt","Mauretanien · Marokko","art2"],
-  ["Jeep über die Pässe","Straßen über 4.000 m, Dörfer am Ende der Welt","Tadschikistan · Kirgistan","art3"],
-  ["Wildnis auf dem Wasser","Kanu, Zelt auf Inseln, Feuer, Handy aus","Schweden · Norwegen","art4"],
-  ["Rennen mit eigenem Gefährt","Tuk-Tuk oder Auto selbst durch fremde Länder","Indien · Mongol Rally","art5"],
-];
+const SPASS = ["spass","Was steht im Mittelpunkt?",["Wildnis pur","Zelt, kein Netz, nur wir","d4a"],["Leute & Kultur","Nomaden, Gastfamilien, Märkte","d4b"]];
 const LAENDER = [
- {k:"mon",name:"Mongolei",art:"Reiten",tag:"Tage im Sattel durch die endlose Steppe, Nächte bei Nomaden in der Jurte",tage:"9–10",preis:"2.100–4.500 €",zeit:"Juni–Sept",krass:5,geo:"Ulaanbaatar · 47,9° N · 106,9° O",clip:"@smchronicles",reel:"https://www.instagram.com/p/DB_Pk68u8Fv/",reelT:"14-Tage-Route mit Karte (@smchronicles)",
+ {k:"mon",name:"Mongolei",pmin:2100,tmin:9,nogo:["reiten","zelt","flug"],art:"Reiten",tag:"Tage im Sattel durch die endlose Steppe, Nächte bei Nomaden in der Jurte",tage:"9–10",preis:"2.100–4.500 €",zeit:"Juni–Sept",krass:5,geo:"Ulaanbaatar · 47,9° N · 106,9° O",clip:"@smchronicles",reel:"https://www.instagram.com/p/DB_Pk68u8Fv/",reelT:"14-Tage-Route mit Karte (@smchronicles)",
   ablauf:[["Tag 1","Flug nach Ulaanbaatar, Stadt + riesiger Schwarzmarkt"],["Tag 2","Fahrt raus in die Steppe, erste Nacht in der Jurte"],["Tag 3–8","Reit-Trek mit Pferdeführer, 4–6 Std. am Tag, Nächte bei Nomaden + im Zelt"],["Tag 9","Rückfahrt, letzter Abend in Ulaanbaatar"],["Tag 10","Heimflug"],["Extra","Im Juli: Naadam-Fest (Ringen, Pferderennen, Bogenschießen) ab ca. 11. Juli"]],
   fakten:[["Kosten","Gruppentour ab ca. 2.500 €, lokal ab ca. 1.600 € + Flug"],["Selbst?","Teils – Fahrer + Pferdeführer vor Ort buchen"],["Achtung","Flug: Mai/Juni/Sept viel billiger als Juli"]]},
- {k:"kgz",name:"Kirgistan",art:"Reiten",tag:"„Mongolei zum halben Preis“: Pferde, Jurten und Bergseen auf 3.000 m",tage:"10–12",preis:"1.200–1.800 €",zeit:"Juni–Sept",krass:4,geo:"Song-Kul-See · 41,8° N · 75,1° O",clip:"@catchagypsea",reel:"https://www.instagram.com/p/Dch_MywIHDK/",reelT:"Deutsche 14-Tage-Route mit Hostels (@nina.borri)",
+ {k:"kgz",name:"Kirgistan",pmin:1200,tmin:10,nogo:["reiten","zelt","flug"],art:"Reiten",tag:"„Mongolei zum halben Preis“: Pferde, Jurten und Bergseen auf 3.000 m",tage:"10–12",preis:"1.200–1.800 €",zeit:"Juni–Sept",krass:4,geo:"Song-Kul-See · 41,8° N · 75,1° O",clip:"@catchagypsea",reel:"https://www.instagram.com/p/Dch_MywIHDK/",reelT:"Deutsche 14-Tage-Route mit Hostels (@nina.borri)",
   ablauf:[["Tag 1","Flug nach Bischkek (über Istanbul)"],["Tag 2","Sammeltaxi nach Kotschkor, Pferde + Führer organisieren"],["Tag 3–5","Reit-Trek zum Song-Kul-See (3.000 m), Nächte in Jurten"],["Tag 6","Fahrt nach Karakol am Issyk-Kul-See"],["Tag 7–9","Wandern: heiße Quellen Altyn-Arashan + Ala-Kul-See, Zelt"],["Tag 10","Badetag am Issyk-Kul"],["Tag 11","Zurück nach Bischkek"],["Tag 12","Heimflug"]],
   fakten:[["Kosten","Flug oft 150–400 €, Song-Kul 3 Tage ab 250 € p. P."],["Selbst?","Ja – nur die Reit-Tage mit Führer"],["Plus","Mit 6 Leuten wird es billiger"]]},
- {k:"geo",name:"Georgien",art:"Reiten",tag:"Über eine der gefährlichsten Straßen der Welt nach Tuscheti – dann aufs Pferd",tage:"8–10",preis:"1.000–1.500 €",zeit:"Juli–Sept",krass:4,geo:"Tuscheti · 42,4° N · 45,6° O",clip:"@balashvilimariamiii",reel:"https://www.instagram.com/p/DeFB9t3KbLc/",reelT:"Reit-Anbieter in Tuscheti (@biliki_travel)",
+ {k:"geo",name:"Georgien",pmin:1000,tmin:8,nogo:["reiten","zelt"],art:"Reiten",tag:"Über eine der gefährlichsten Straßen der Welt nach Tuscheti – dann aufs Pferd",tage:"8–10",preis:"1.000–1.500 €",zeit:"Juli–Sept",krass:4,geo:"Tuscheti · 42,4° N · 45,6° O",clip:"@balashvilimariamiii",reel:"https://www.instagram.com/p/DeFB9t3KbLc/",reelT:"Reit-Anbieter in Tuscheti (@biliki_travel)",
   ablauf:[["Tag 1","Flug nach Kutaissi oder Tiflis"],["Tag 2","Tiflis: Altstadt, Schwefelbäder"],["Tag 3","Jeep über den Abano-Pass (fast 2.900 m) nach Omalo"],["Tag 4–7","Pferde-Trek durch Tuscheti mit Führer, Bergdörfer, Gästehäuser + Zelt"],["Tag 8","Zurück, Weinregion Kachetien"],["Tag 9","Heimflug"]],
   fakten:[["Kosten","Pferdetour 6 Tage ca. 605–805 €"],["Selbst?","Ja – Pferde mit Führer"],["Achtung","Straße nach Tuscheti nur ca. 3 Monate im Jahr offen"]]},
- {k:"mau",name:"Mauretanien",art:"Wüste + Erzzug",tag:"Eine Nacht im längsten Zug der Welt quer durch die Sahara",tage:"7–8",preis:"2.100–2.600 €",zeit:"Nov–März",krass:5,geo:"Adrar · 20,5° N · 13,0° W",clip:"@simamillerr",reel:"https://www.instagram.com/p/DZpdbDWsUeq/",reelT:"Deutsches Erzzug-Video (@jovanuljarevic)",
+ {k:"mau",name:"Mauretanien",pmin:2100,tmin:7,nogo:["zelt"],art:"Wüste + Erzzug",tag:"Eine Nacht im längsten Zug der Welt quer durch die Sahara",tage:"7–8",preis:"2.100–2.600 €",zeit:"Nov–März",krass:5,geo:"Adrar · 20,5° N · 13,0° W",clip:"@simamillerr",reel:"https://www.instagram.com/p/DZpdbDWsUeq/",reelT:"Deutsches Erzzug-Video (@jovanuljarevic)",
   warn:"⚠️ Oben auf dem Erz mitfahren (wie im Clip) ist seit 2024 verboten. Wir dürften nur in den Passagierwagen.",
   ablauf:[["Tag 1","Flug nach Nouakchott"],["Tag 2","Fahrt ins Adrar-Gebirge nach Atar"],["Tag 3","Chinguetti: alte Wüstenstadt, Dünen, Nacht im Wüstencamp"],["Tag 4","Oase Terjit, weiter nach Choum"],["Tag 5","Nacht im Erzzug (bis 2,5 km lang) durch die Sahara"],["Tag 6","Nouadhibou: Schiffsfriedhof, Cap Blanc"],["Tag 7","Zurück nach Nouakchott, Fischmarkt"],["Tag 8","Heimflug"]],
   fakten:[["Termine","z. B. 15.–22.03. oder 12.–19.11.2027 (Tour 1.790 € ohne Flug)"],["Achtung","Reisehinweise vom Auswärtigen Amt lesen; Sommer zu heiß"]]},
- {k:"mar",name:"Marokko",art:"Wüste",tag:"Mit Kamelen zu den Dünen von Erg Chigaga, Nächte unter Sternen",tage:"7–9",preis:"700–1.300 €",zeit:"Okt–April",krass:3,geo:"Erg Chigaga · 29,8° N · 6,0° W",clip:"@travelcroats",reel:"https://www.instagram.com/p/DcydZevkfr4/",reelT:"Welche Wüste in Marokko? (@jananiundmirko)",
+ {k:"mar",name:"Marokko",pmin:700,tmin:7,nogo:["zelt"],art:"Wüste",tag:"Mit Kamelen zu den Dünen von Erg Chigaga, Nächte unter Sternen",tage:"7–9",preis:"700–1.300 €",zeit:"Okt–April",krass:3,geo:"Erg Chigaga · 29,8° N · 6,0° W",clip:"@travelcroats",reel:"https://www.instagram.com/p/DcydZevkfr4/",reelT:"Welche Wüste in Marokko? (@jananiundmirko)",
   ablauf:[["Tag 1","Flug nach Marrakesch, Nachtmarkt Djemaa el-Fna"],["Tag 2","Über den Hohen Atlas nach Ouarzazate"],["Tag 3","Weiter nach M'Hamid, Rand der Sahara"],["Tag 4–5","Kamel-Trek zu den Dünen von Erg Chigaga, Nächte unter Sternen"],["Tag 6","Zurück Richtung Marrakesch"],["Tag 7","Heimflug"],["+2 Tage","Extra: Toubkal besteigen – 4.167 m, höchster Berg Nordafrikas"]],
   fakten:[["Kosten","Kamel-Trek 5 Tage ab ca. 570 $"],["Selbst?","Ja – Mietwagen, Kameltreiber in M'Hamid"],["Plus","Kurzer, billiger Flug"]]},
- {k:"pam",name:"Pamir Highway",art:"Jeep",tag:"Im Jeep über die zweithöchste Fernstraße der Welt – Afghanistan auf der anderen Flussseite",tage:"10–12",preis:"1.200–1.800 €",zeit:"Juli–Sept",krass:5,geo:"Ak-Baital-Pass · 4.655 m",clip:"@campinglife.kz",reel:"https://www.instagram.com/p/DPnvm5yDMyw/",reelT:"11 Tage Pamir: Genehmigung, Bargeld, Karten (@muoniovaara)",
+ {k:"pam",name:"Pamir Highway",pmin:1200,tmin:10,nogo:["hoehe","flug","auto"],art:"Jeep",tag:"Im Jeep über die zweithöchste Fernstraße der Welt – Afghanistan auf der anderen Flussseite",tage:"10–12",preis:"1.200–1.800 €",zeit:"Juli–Sept",krass:5,geo:"Ak-Baital-Pass · 4.655 m",clip:"@campinglife.kz",reel:"https://www.instagram.com/p/DPnvm5yDMyw/",reelT:"11 Tage Pamir: Genehmigung, Bargeld, Karten (@muoniovaara)",
   ablauf:[["Tag 1","Flug nach Duschanbe"],["Tag 2–3","Jeep am Fluss Pandsch entlang – gegenüber Afghanistan – nach Chorugh"],["Tag 4–5","Wachan-Tal: alte Festungen, heiße Quellen, Blick auf den Hindukusch"],["Tag 6","Hochebene bis Murghob (ca. 3.600 m)"],["Tag 7","Ak-Baital-Pass (4.655 m), Karakul-See"],["Tag 8","Grenze nach Kirgistan, Sary-Tasch"],["Tag 9","Osch: riesiger Basar"],["Tag 10–11","Puffer-Tag + Heimflug ab Osch"]],
   fakten:[["Kosten","Jeep mit Fahrer ca. 1.500–2.000 $ pro Auto (max. 4)"],["Selbst?","Route selbst, Jeeps mit Fahrer"],["Achtung","E-Visum + Pamir-Genehmigung; Höhe langsam angehen"]]},
- {k:"swe",name:"Schweden",art:"Kanu",tag:"Eine Woche im Kanu: jede Nacht eine andere Insel, Feuer, Handy aus",tage:"7–9",preis:"500–800 €",zeit:"Juni–Aug",krass:3,geo:"Dalsland · 59,0° N · 12,2° O",clip:"@daniellestrayed",reel:"https://www.instagram.com/p/Cw3DH_9MIFM/",reelT:"7 Tage Kanu auf eigene Faust (@daniellestrayed)",
+ {k:"swe",name:"Schweden",pmin:500,tmin:7,nogo:["zelt"],art:"Kanu",tag:"Eine Woche im Kanu: jede Nacht eine andere Insel, Feuer, Handy aus",tage:"7–9",preis:"500–800 €",zeit:"Juni–Aug",krass:3,geo:"Dalsland · 59,0° N · 12,2° O",clip:"@daniellestrayed",reel:"https://www.instagram.com/p/Cw3DH_9MIFM/",reelT:"7 Tage Kanu auf eigene Faust (@daniellestrayed)",
   ablauf:[["Tag 1","Anreise mit 2 Autos (Fähre über Dänemark oder Ostsee)"],["Tag 2","Kanus + Ausrüstung in Bengtsfors (Dalsland) abholen"],["Tag 3–7","Paddeln durch die Seen, jede Nacht ein neuer Platz, Feuer, Angeln"],["Tag 5–6","Challenge: 48 Std. Handy aus"],["Tag 8","Kanus zurück, Heimfahrt"]],
   fakten:[["Kosten","Pakete ab ca. 300–400 € inkl. Kanu, Zelt, Essen"],["Selbst?","Ja, komplett"],["Plus","Jedermannsrecht: Zelten in der Natur erlaubt"]]},
- {k:"ind",name:"Rikscha-Rennen",art:"Rennen · Indien",tag:"3.000 km im eigenen Tuk-Tuk quer durch Indien – nur Start und Ziel stehen fest",tage:"ca. 14",preis:"2.000–2.500 €",zeit:"Jan/Mär/Dez",krass:5,geo:"Indien · 2 Teams à 3",clip:"@theadventurists",reel:"https://www.instagram.com/p/Ddwh3TNozJ4/",reelT:"Deutsches 3er-Team beim Start (@finnian_garvey)",
+ {k:"ind",name:"Rikscha-Rennen",pmin:2000,tmin:14,nogo:["flug","auto"],art:"Rennen · Indien",tag:"3.000 km im eigenen Tuk-Tuk quer durch Indien – nur Start und Ziel stehen fest",tage:"ca. 14",preis:"2.000–2.500 €",zeit:"Jan/Mär/Dez",krass:5,geo:"Indien · 2 Teams à 3",clip:"@theadventurists",reel:"https://www.instagram.com/p/Ddwh3TNozJ4/",reelT:"Deutsches 3er-Team beim Start (@finnian_garvey)",
   ablauf:[["Tag 1","Flug nach Indien zur Startstadt"],["Tag 2–3","Tuk-Tuk-Fahrschule, Rikscha bemalen, Start-Party"],["Tag 4–13","Eigene Route quer durchs Land – nur Start + Ziel stehen fest"],["Tag 14","Ziel-Party, Heimflug"]],
   fakten:[["Kosten","£1.995 pro Team (max. 3) + Flug"],["Termine","fest, z. B. 11.–20.03.2027 – früh buchen"],["Selbst?","Ja, komplett – kein Guide"]]},
- {k:"ral",name:"Mongol Rally",art:"Rennen · Auto",tag:"Mit einem viel zu kleinen Auto von Europa bis nach Zentralasien",tage:"4–6 Wo.",preis:"3.000–5.000 €",zeit:"ab Mitte Juli",krass:5,geo:"Prag → Zentralasien · über 10.000 km",clip:"@not_standard_issue",reel:"https://www.instagram.com/p/Dc-91EBiBQe/",reelT:"Tipps von 8 Teams (@norwegian_travellers)",
+ {k:"ral",name:"Mongol Rally",pmin:3000,tmin:28,nogo:["auto","zelt","flug"],art:"Rennen · Auto",tag:"Mit einem viel zu kleinen Auto von Europa bis nach Zentralasien",tage:"4–6 Wo.",preis:"3.000–5.000 €",zeit:"ab Mitte Juli",krass:5,geo:"Prag → Zentralasien · über 10.000 km",clip:"@not_standard_issue",reel:"https://www.instagram.com/p/Dc-91EBiBQe/",reelT:"Tipps von 8 Teams (@norwegian_travellers)",
   warn:"⏳ Dauert 4–6 Wochen – geht nur, wenn alle so lange frei haben.",
   ablauf:[["Vorher","Altes Auto kaufen + fit machen (max. 4 pro Auto)"],["Woche 1","Start in Tschechien, durch Osteuropa"],["Woche 2–5","Türkei/Kaukasus oder Russland, dann Zentralasien"],["Ende","Ziel-Party, Auto bleibt dort, Heimflug"]],
   fakten:[["Kosten","£895 pro Auto + Auto + Sprit + Flug"],["Achtung","2026 ausgebucht – früh anmelden; Ziel 2027 prüfen"]]},
 ];
 const KOMBIS = [
-  ["Kirgistan + Pamir","Reiten UND Jeep: Song-Kul-Trek, dann Pamir Highway bis Duschanbe · ca. 15 Tage · 1.700–2.400 €","kombi"],
-  ["Kanu + Norwegen","Schweden-Kanu, danach Trolltunga-Wanderung · ca. 11 Tage · 900–1.400 €","norw"],
+  {name:"Kirgistan + Pamir",d:"Reiten UND Jeep: Song-Kul-Trek, dann Pamir Highway bis Duschanbe · ca. 15 Tage · 1.700–2.400 €",b:"kombi",zeit:"Juli–Sept",pmin:1700,tmin:15,nogo:["reiten","zelt","hoehe","flug","auto"]},
+  {name:"Kanu + Norwegen",d:"Schweden-Kanu, danach Trolltunga-Wanderung · ca. 11 Tage · 900–1.400 €",b:"norw",zeit:"Juni–Sept",pmin:900,tmin:11,nogo:["zelt"]},
 ];
+const ZIELE = [...LAENDER, ...KOMBIS];
 const MONATE = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 const KAL = { // 2 = beste Zeit, 1 = geht, 3 = fester Termin
   "Mongolei":[0,0,0,0,0,2,2,2,2,0,0,0],"Kirgistan":[0,0,0,0,0,2,2,2,2,0,0,0],"Georgien":[0,0,0,0,0,1,2,2,2,1,0,0],
   "Mauretanien":[2,2,2,0,0,0,0,0,0,1,2,2],"Marokko":[1,1,2,2,1,0,0,0,0,2,2,1],"Pamir Highway":[0,0,0,0,0,1,2,2,2,0,0,0],
   "Kirgistan + Pamir":[0,0,0,0,0,0,2,2,2,0,0,0],"Schweden":[0,0,0,0,1,2,2,2,1,0,0,0],"Kanu + Norwegen":[0,0,0,0,0,1,2,2,1,0,0,0],
   "Rikscha-Rennen":[3,0,3,0,0,0,0,0,0,0,0,3],"Mongol Rally":[0,0,0,0,0,0,3,3,0,0,0,0]};
-const DAUER = ["1 Woche","10 Tage","2 Wochen","3 Wochen","4+ Wochen"];
-const BUDGET = [
-  ["bis ca. 1.000 €","var(--gr)",["Schweden-Kanu","Marokko"]],
-  ["1.000–2.000 €","var(--go)",["Kanu + Norwegen","Georgien","Kirgistan","Pamir"]],
-  ["über 2.000 €","var(--or)",["Kirgistan + Pamir","Rikscha Indien","Mauretanien","Mongolei","Mongol Rally"]],
-];
-const OKAY = ["Reiten (ohne Erfahrung)","Zelten ohne Dusche","Langer Flug (6+ Std.)","Höhe über 4.000 m","Nacht im Zug/Jeep","Visum & Papierkram"];
+const DAUER = [["1 Woche",8,"7–8 Tage"],["10 Tage",10,""],["2 Wochen",14,""],["3 Wochen",21,""],["4+ Wochen",42,""]];
+const BUDGET = [["bis 1.000 €",1000,"var(--gr)"],["bis 1.500 €",1500,"var(--gr)"],["bis 2.000 €",2000,"var(--go)"],["bis 3.000 €",3000,"var(--or)"],["Geld egal",99999,"var(--or)"]];
+const NOGOS = {reiten:"Tagelang reiten",zelt:"Zelten ohne Dusche",hoehe:"Höhe über 4.000 m",flug:"Langer Flug nach Asien (8+ Std.)",auto:"Tagelang im Auto/Jeep"};
+const MAX_CHALL = 3;
 const CHALL = [
   ["ch1","48 Std. ohne Handy","Alle Handys in eine Tüte – nur Karte und Kompass"],
   ["ch2","Nacht ohne Zelt","Draußen unter den Sternen schlafen"],
@@ -423,11 +437,12 @@ const CHALL = [
 const DABEI = [["Fix dabei 🔒","gr"],["Wahrscheinlich 👍","go"],["Eher nicht 🤷",""]];
 
 /* ============ ZUSTAND ============ */
-const LEER = {name:"",d1:[],d2:[],d3:[],d4:[],d5:[],arten:[],laender:[],monate:[],dauer:[],budget:[],okay:[],challenges:[],dabei:"",text:""};
-const EINZEL = new Set(["name","dabei"]);
-let A = Object.assign(JSON.parse(JSON.stringify(LEER)), JSON.parse(localStorage.getItem("reise27")||"{}"));
+const LEER = {name:"",spass:"",ziele:{},monate:[],dauer:"",budget:"",nogos:[],challenges:[],dabei:"",text:""};
+const EINZEL = new Set(["name","dabei","spass","dauer","budget"]);
+const SPEICHER = "reise27v2";
+let A = Object.assign(JSON.parse(JSON.stringify(LEER)), JSON.parse(localStorage.getItem(SPEICHER)||"{}"));
 if (!A.id) A.id = Math.random().toString(36).slice(2,10)+Date.now().toString(36);
-const speichern = () => localStorage.setItem("reise27", JSON.stringify(A));
+const speichern = () => localStorage.setItem(SPEICHER, JSON.stringify(A));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const hatTest = new URLSearchParams(location.search).has("test");
 
@@ -441,82 +456,119 @@ function kapitel(n, kick, titel, text, bild) {
     <div class="num">0${n}</div><div class="shade-b"></div>
     <div class="txt"><div class="kicker">${kick}</div><h2 class="h">${titel}</h2><p>${text}</p></div><div class="flash"></div></div></section>`;
 }
+const W = [["top","🔥 Top"],["geht","👍 Geht"],["nein","❌ Nein"]];
+const wertung = (name, plan) => `<div class="wertung${plan==null?" ohne":""}">${plan!=null?`<button class="mehr" data-plan="${plan}">Plan ›</button>`:""}${W.map(([v,t])=>`<button class="wb ${v}" data-q="ziel" data-z="${esc(name)}" data-v="${v}" aria-pressed="false">${t}</button>`).join("")}</div>`;
 let h = "";
-h += kapitel(1,"Runde 1 · 5 Duelle","A oder B?","Nicht lang überlegen – einfach tippen. Beides geil? Dann beide antippen.","r1");
-DUELLE.forEach(([q,frage,a,b],i) => {
+{ const [q,frage,a,b] = SPASS;
   const seite = (x,bu,cls) => `<button class="seite ${cls}" data-q="${q}" data-v="${esc(x[0])}" aria-pressed="false">
       <img class="bg" data-img="m/${x[2]}.webp" alt=""><div class="shade-b"></div>
       <div class="lab"><div class="buch">${bu}</div><div class="t">${x[0]}</div><div class="d">${x[1]}</div></div><div class="haken"></div></button>`;
-  h += `<section class="duell fx" data-q="${q}"><div class="frage"><div class="kicker">Duell ${i+1} von 5</div><div class="h">${frage}</div></div>
-    ${seite(a,"A","a")}${seite(b,"B","b")}<div class="vs">VS</div><div class="tipp">tippen · beides geht</div></section>`;
-});
-h += kapitel(2,"Runde 2 · Abenteuer-Art","Was machen wir?","5 Arten zu reisen. Tipp alles an, worauf du Bock hast.","r2");
-h += `<div class="stapel">` + ARTEN.map(([t,d,l,b],i) => `<div class="karte" data-karte style="--k:${i}">
-    <img class="bg" data-img="m/${b}.webp" alt=""><div class="shade-b"></div>
-    <div class="inh"><div class="nr">0${i+1}</div><div class="h">${t}</div><div class="d">${d}</div><div class="l">${l}</div>
-    ${opt("arten",t,"Bock drauf 🔥","bock")}</div></div>`).join("") + `</div>`;
-h += kapitel(3,"Runde 3 · 9 Ziele","Wohin genau?","Jedes Ziel mit echtem Clip. Tipp auf „So läuft's“ für den Tagesplan.","r3");
+  h += `<section class="duell fx" data-q="${q}"><div class="frage"><div class="kicker">Zum Aufwärmen · nur 1 Frage</div><div class="h">${frage}</div></div>
+    ${seite(a,"A","a")}${seite(b,"B","b")}<div class="vs">VS</div><div class="tipp">A oder B tippen</div></section>`; }
+h += kapitel(1,"Runde 1 · 9 Ziele + 2 Kombis","Wohin?","Bei jedem Ziel: 🔥 Top, 👍 Geht oder ❌ Nein. „Plan“ zeigt den Tagesplan.","r3");
 LAENDER.forEach((L,i) => {
-  h += `<section class="land fx" data-land="${L.k}">
+  h += `<section class="land fx" data-land="${L.k}" data-ziel="${esc(L.name)}">
     <img class="poster" data-img="m/${L.k}_p.webp" alt="">
     <video class="bg" data-src="m/${L.k}.mp4" muted playsinline loop preload="none"></video>
     <div class="shade-b"></div><div class="shade-t"></div>
-    <div class="kopf"><span class="idx">${String(i+1).padStart(2,"0")} / 09</span><span>${L.geo}</span></div>
+    <div class="kopf"><span class="idx">${String(i+1).padStart(2,"0")} / ${ZIELE.length}</span><span>${L.geo}</span></div>
     <div class="unten"><span class="art">${L.art}</span>
       <h3 class="h${L.name.length>10?" lang":""}">${L.name}</h3>
       <p class="tag">${L.tag}</p>
       <div class="stats"><div class="stat"><b>${L.tage}</b><span>Tage</span></div><div class="stat"><b>${L.preis}</b><span>pro Person</span></div><div class="stat"><b>${L.zeit}</b><span>beste Zeit</span></div></div>
       <div class="krass"><span>Krass-Faktor</span><span class="st">${"★".repeat(L.krass)}${"☆".repeat(5-L.krass)}</span></div>
       ${L.warn?`<div class="warn">${L.warn}</div>`:""}
-      <div class="knoepfe"><button class="mehr" data-plan="${i}">So läuft's</button>${opt("laender",L.name,"Bin dabei 🔥","bock")}</div>
+      ${wertung(L.name,i)}
       <div class="credit">Clip: ${L.clip} (Instagram)</div></div></section>`;
 });
-h += `<section class="blk"><div class="kicker rv">Oder gleich doppelt?</div><h2 class="h rv" style="--i:1;font-size:54px">Die Kombis</h2>
+h += `<section class="blk"><div class="kicker rv">Oder gleich doppelt? · 10 + 11 / ${ZIELE.length}</div><h2 class="h rv" style="--i:1;font-size:54px">Die Kombis</h2>
   <p class="lead rv" style="--i:2">Zwei Ideen in einer Reise – dafür länger.</p><div class="kombis">` +
-  KOMBIS.map(([t,d,b],i) => `<div class="kombi rv" style="--i:${i}"><img class="bg" data-img="m/${b}.webp" alt=""><div class="shade-b"></div>
-    <div class="inh"><div class="h">${t}</div><div class="d">${d}</div>${opt("laender",t,"Bin dabei 🔥","bock")}</div></div>`).join("") + `</div></section>`;
-h += kapitel(4,"Runde 4 · Zeit & Geld","Wann & wie viel?","Wann kannst du 2027 – und was ist drin? Alles inklusive Flug.","r4");
+  KOMBIS.map((K,i) => `<div class="kombi rv" style="--i:${i}" data-ziel="${esc(K.name)}"><img class="bg" data-img="m/${K.b}.webp" alt=""><div class="shade-b"></div>
+    <div class="inh"><div class="h">${K.name}</div><div class="d">${K.d}</div>${wertung(K.name,null)}</div></div>`).join("") +
+  `</div><p class="zaehler rv" id="zaehler" style="margin-top:18px"></p></section>`;
+h += kapitel(2,"Runde 2 · Zeit","Wann & wie lange?","Wann kannst du 2027 – und wie viele Tage am Stück gehen maximal?","r4");
 h += `<section class="blk" id="wann"><div class="unterh rv" style="margin-top:0">Welche Monate gehen?</div>
-  <p class="unterp rv">Alle antippen, in denen du kannst. Der grüne Balken zeigt, wie gut der Monat zu deinen Zielen passt.</p>
+  <p class="unterp rv">Alle antippen, in denen du kannst. Der grüne Balken zeigt, wie gut der Monat zu deinen 🔥/👍-Zielen passt.</p>
   <div class="monate">${MONATE.map((m,i)=>opt("monate",m,`${m}<small data-fit="${i}"></small><div class="leiste"><i data-bar="${i}"></i></div>`,"chip gr")).join("")}</div>
-  <div class="unterh rv">Wie lange am Stück?</div><p class="unterp rv">Was ist bei dir maximal drin? Mehrere gehen.</p>
-  <div class="chips">${DAUER.map(d=>opt("dauer",d,d,"chip go")).join("")}</div>
-  <div class="unterh rv">Budget pro Person?</div><p class="unterp rv">Alles inklusive (Flug, Schlafen, Touren), ohne Taschengeld. Tipp alles an, was für dich okay ist.</p>
-  <div class="budget">${BUDGET.map(([t,f,l])=>opt("budget",t,`<div class="h">${t}</div><ul>${l.map(x=>`<li>${x}</li>`).join("")}</ul><div class="haken"></div>`,"bkarte",`style="--f:${f}"`)).join("")}</div>
+  <div class="unterh rv">Wie lange am Stück – maximal?</div><p class="unterp rv">Nur eine Antwort: das Längste, was bei dir geht.</p>
+  <div class="chips">${DAUER.map(([t,n,z])=>opt("dauer",t,`${t}${z?` <span style="font-size:.6em;opacity:.7">(${z})</span>`:""}<span class="passt" data-dpasst="${n}"></span>`,"chip go")).join("")}</div>
   </section>`;
-h += kapitel(5,"Bonus","Wie krass darf's werden?","Was geht für dich klar – und welche Challenges bauen wir ein?","ch2");
-h += `<section class="blk"><div class="unterh rv" style="margin-top:0">Was geht für dich klar?</div><p class="unterp rv">Alles antippen, womit du kein Problem hast.</p>
-  <div class="chips">${OKAY.map(o=>opt("okay",o,o,"chip gr")).join("")}</div>
-  <div class="unterh rv">Challenges</div><p class="unterp rv">Die beliebtesten bauen wir in die Reise ein. Am besten 2–3 wählen.</p>
-  <div class="raster">${CHALL.map(([b,t,d],i)=>opt("challenges",t,`<img class="bg" data-img="m/${b}.webp" alt=""><div class="shade-b"></div><div class="inh"><div class="h">${t}</div><div class="d">${d}</div></div><div class="haken"></div>`,"kachel rv",`style="--i:${i%2}"`)).join("")}</div></section>`;
+h += kapitel(3,"Runde 3 · Geld","Wie viel?","Was ist bei dir maximal drin – pro Person, alles inklusive Flug?","r2");
+h += `<section class="blk" id="geld"><div class="unterh rv" style="margin-top:0">Budget pro Person – maximal?</div>
+  <p class="unterp rv">Nur eine Antwort. Alles inklusive (Flug, Schlafen, Touren), ohne Taschengeld. Darunter siehst du, welche Ziele damit gehen.</p>
+  <div class="budget">${BUDGET.map(([t,n,f])=>opt("budget",t,`<div class="h">${t}</div><div class="n">Damit möglich: ${ZIELE.filter(z=>z.pmin<=n).length} von ${ZIELE.length}</div><ul>${ZIELE.map(z=>`<li class="${z.pmin<=n?"":"weg"}">${z.name}</li>`).join("")}</ul><div class="haken"></div>`,"bkarte",`style="--f:${f}"`)).join("")}</div>
+  </section>`;
+h += kapitel(4,"Runde 4 · Bonus","No-Gos & Challenges","Was geht für dich gar nicht – und welche Challenges bauen wir ein?","ch2");
+h += `<section class="blk"><div class="unterh rv" style="margin-top:0">Deine No-Gos</div><p class="unterp rv">Nur antippen, was für dich wirklich gar nicht geht. Ziele mit deinem No-Go fliegen in der Auswertung raus.</p>
+  <div class="chips">${Object.values(NOGOS).map(o=>opt("nogos",o,o,"chip rot")).join("")}</div>
+  <div class="unterh rv">Challenges</div><p class="unterp rv">Die beliebtesten bauen wir in die Reise ein. Bis zu ${MAX_CHALL} wählen.</p>
+  <div class="raster">${CHALL.map(([b,t,d],i)=>opt("challenges",t,`<img class="bg" data-img="m/${b}.webp" alt=""><div class="shade-b"></div><div class="inh"><div class="h">${t}</div><div class="d">${d}</div></div><div class="haken"></div>`,"kachel rv",`style="--i:${i%2}"`)).join("")}</div>
+  <div class="hinweis" id="challhinweis"></div></section>`;
+h += `<section class="blk" id="matchbox" style="background:radial-gradient(120% 70% at 20% 0%,rgba(63,169,140,.16),transparent 60%)">
+  <div class="kicker rv">Check</div><h2 class="h rv" style="--i:1;font-size:54px">Dein Match</h2>
+  <p class="lead rv" style="--i:2">Passen deine Ziele zu deinen eigenen Monaten, Tagen, Budget und No-Gos? Bei ⚠️ einfach oben anpassen.</p>
+  <div id="match"></div></section>`;
 $("#app").innerHTML = h;
 $("#namen").innerHTML = (hatTest?[...NAMEN,"Test"]:NAMEN).map((n,i)=>opt("name",n,n,"chip rv",`style="--i:${i+3}"`)).join("");
 $("#dabei").innerHTML = DABEI.map(([t,c])=>opt("dabei",t,t,"chip "+c)).join("");
 $("#text").value = A.text || "";
 
 /* ============ AUSWAHL ============ */
+const zielW = n => A.ziele[n] || "";
+const mitW = (...w) => ZIELE.filter(z => w.includes(zielW(z.name)));
+const wertVon = (liste, t) => (liste.find(x => x[0]===t) || [])[1];
+const nogoTexte = z => z.nogo.map(k => NOGOS[k]);
+function konflikte(z) {
+  const k = [], bud = wertVon(BUDGET, A.budget), tage = wertVon(DAUER, A.dauer);
+  if (bud && z.pmin > bud) k.push(`kostet ab ca. ${z.pmin.toLocaleString("de-DE")} € – dein Budget: ${A.budget}`);
+  if (tage && z.tmin > tage) k.push(`braucht mind. ${z.tmin} Tage – du kannst max. ${A.dauer}`);
+  if (A.monate.length && KAL[z.name] && !A.monate.some(m => KAL[z.name][MONATE.indexOf(m)] >= 1)) k.push(`Saison ${z.zeit} – passt zu keinem deiner Monate`);
+  nogoTexte(z).filter(t => A.nogos.includes(t)).forEach(t => k.push(`dein No-Go: ${t}`));
+  return k;
+}
+function zeigeMatch() {
+  const n = ZIELE.filter(z => zielW(z.name)).length;
+  const zaehl = $("#zaehler"); if (zaehl) zaehl.textContent = `${n} von ${ZIELE.length} Zielen bewertet` + (n<ZIELE.length ? " – bitte alle bewerten" : " ✓");
+  const liste = [...mitW("top"), ...mitW("geht")];
+  if (!liste.length) { $("#match").innerHTML = `<div class="mleer">Noch kein Ziel mit 🔥 Top oder 👍 Geht bewertet – oben bei „Wohin?“ antippen.</div>`; return; }
+  const ok = liste.filter(z => !konflikte(z).length).length;
+  $("#match").innerHTML = `<div class="mkopf"><em>${ok} von ${liste.length}</em> deiner Ziele passen zu dir</div><div class="match">` + liste.map(z => {
+    const k = konflikte(z);
+    return `<div class="mz ${k.length?"konf":""}"><div class="k"><b>${z.name}</b><span>${zielW(z.name)==="top"?"🔥 Top":"👍 Geht"}</span></div>` +
+      (k.length ? `<ul>${k.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>` : `<div class="ok">✓ passt</div>`) + `</div>`;
+  }).join("") + `</div>` + (mitW("nein").length ? `<p class="unterp" style="margin-top:14px">❌ Nein: ${mitW("nein").map(z=>z.name).join(", ")}</p>` : "");
+}
 function zeigen() {
   document.querySelectorAll("[data-q][data-v]").forEach(b => {
     const q=b.dataset.q, v=b.dataset.v;
-    b.setAttribute("aria-pressed", EINZEL.has(q) ? A[q]===v : A[q].includes(v));
+    b.setAttribute("aria-pressed", q==="ziel" ? zielW(b.dataset.z)===v : EINZEL.has(q) ? A[q]===v : A[q].includes(v));
   });
-  document.querySelectorAll(".duell").forEach(d => d.classList.toggle("gewaehlt", A[d.dataset.q].length===1));
-  // Monats-Passung zu den gewählten Zielen
-  const z = A.laender.filter(n => KAL[n]);
+  document.querySelectorAll("[data-ziel]").forEach(el => { const w = zielW(el.dataset.ziel); ["top","geht","nein"].forEach(x => el.classList.toggle("w-"+x, w===x)); });
+  document.querySelectorAll(".duell").forEach(d => d.classList.toggle("gewaehlt", !!A[d.dataset.q]));
+  // Monats-Passung zu den 🔥/👍-Zielen
+  const z = [...mitW("top"), ...mitW("geht")].map(x => x.name).filter(n => KAL[n]);
   MONATE.forEach((m,i) => {
     const gut = z.filter(n => KAL[n][i]>=2).length, geht = z.filter(n => KAL[n][i]===1).length;
     const sc = z.length ? (gut + geht*.5)/z.length : 0;
     $(`[data-bar="${i}"]`).style.setProperty("--w", Math.round(sc*100)+"%");
     $(`[data-fit="${i}"]`).textContent = z.length ? (gut ? `${gut}× top` : geht ? "geht" : "–") : "";
   });
+  // Dauer: wie viele Ziele passen
+  DAUER.forEach(([t,n]) => { const el = $(`[data-dpasst="${n}"]`); if (el) el.textContent = `${ZIELE.filter(x=>x.tmin<=n).length} von ${ZIELE.length} Zielen`; });
+  zeigeMatch();
   zusammenfassung();
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-q][data-v]");
   if (!b) return;
   const q=b.dataset.q, v=b.dataset.v;
-  if (EINZEL.has(q)) A[q] = A[q]===v ? "" : v;
+  if (q==="ziel") { const n=b.dataset.z; if (A.ziele[n]===v) delete A.ziele[n]; else A.ziele[n]=v; }
+  else if (EINZEL.has(q)) A[q] = A[q]===v ? "" : v;
+  else if (q==="challenges" && !A[q].includes(v) && A[q].length>=MAX_CHALL) {
+    const hw = $("#challhinweis"); hw.textContent = `Max. ${MAX_CHALL} – erst eine abwählen.`; b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); return;
+  }
   else A[q] = A[q].includes(v) ? A[q].filter(x=>x!==v) : [...A[q], v];
+  if (q==="challenges") $("#challhinweis").textContent = "";
   speichern(); zeigen();
   b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
   if (navigator.vibrate) navigator.vibrate(12);
@@ -533,7 +585,7 @@ document.addEventListener("click", e => {
       <dl class="fakt">${L.fakten.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join("")}</dl>
       <a class="reel" href="${L.reel}" target="_blank" rel="noopener">▶ Reel ansehen</a>
       <p class="credit" style="text-align:center">${L.reelT}</p>
-      <div style="margin-top:14px">${opt("laender",L.name,"Bin dabei 🔥","bock")}</div>`;
+      <div style="margin-top:14px">${wertung(L.name,null)}</div>`;
     zeigen(); $("#sheet").classList.add("auf"); document.body.style.overflow="hidden";
   }
   if (e.target.closest("[data-zu]")) { $("#sheet").classList.remove("auf"); document.body.style.overflow=""; }
@@ -603,9 +655,10 @@ new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? hv.play().catc
 addEventListener("touchstart", () => { hv.play().catch(()=>{}); }, {once:true, passive:true});
 
 /* ============ ZUSAMMENFASSUNG + SENDEN ============ */
-const ZEILEN = [["name","Name"],["laender","Ziele"],["arten","Arten"],["d1","Unterwegs"],["d2","Landschaft"],["d3","Dauer-Typ"],["d4","Fokus"],["d5","Geld-Typ"],
-  ["monate","Monate"],["dauer","Am Stück"],["budget","Budget"],["okay","Geht klar"],["challenges","Challenges"],["dabei","Dabei?"]];
-const wert = k => Array.isArray(A[k]) ? A[k].join(", ") : A[k];
+const ZEILEN = [["name","Name"],["top","🔥 Top"],["geht","👍 Geht"],["nein","❌ Nein"],["monate","Monate"],["dauer","Max. Tage"],["budget","Max. Budget"],
+  ["nogos","No-Gos"],["challenges","Challenges"],["spass","Aufwärmen"],["dabei","Dabei?"]];
+const feld = k => ["top","geht","nein"].includes(k) ? mitW(k).map(z=>z.name) : A[k];
+const wert = k => { const v = feld(k); return Array.isArray(v) ? v.join(", ") : v; };
 function zusammenfassung() {
   $("#zusammen").innerHTML = ZEILEN.map(([k,t]) => `<div><dt>${t}</dt><dd class="${wert(k)?"":"leer"}">${esc(wert(k)||"–")}</dd></div>`).join("");
   const txt = waText(), url = `https://wa.me/${WHATSAPP_NR}?text=${encodeURIComponent(txt)}`;
@@ -619,7 +672,8 @@ $("#senden").addEventListener("click", async () => {
   const btn = $("#senden"), st = $("#status");
   if (!ZIEL) { st.textContent = "Sammel-Tabelle ist noch nicht verbunden – bitte den WhatsApp-Knopf nehmen."; return; }
   btn.disabled = true; st.textContent = "Wird gesendet …";
-  const daten = {...A, geraet: navigator.userAgent.slice(0,120), version: 1};
+  const daten = {name:A.name, top:feld("top"), geht:feld("geht"), nein:feld("nein"), monate:A.monate, dauer:A.dauer, budget:A.budget, nogos:A.nogos,
+    challenges:A.challenges, spass:A.spass, dabei:A.dabei, text:A.text, id:A.id, geraet: navigator.userAgent.slice(0,120), version: 2};
   try {
     const r = await fetch(ZIEL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(daten)});
     const j = await r.json();
