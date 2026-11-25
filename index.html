@@ -97,7 +97,9 @@ document.querySelectorAll("[data-img],[data-bg]").forEach(el => bildIO.observe(e
 .chip.gr[aria-pressed=true]{background:var(--gr);border-color:var(--gr);box-shadow:0 8px 30px rgba(63,169,140,.45)}
 .chip.go[aria-pressed=true]{background:var(--go);border-color:var(--go);color:var(--ink);box-shadow:0 8px 30px rgba(242,193,78,.4)}
 .chip.go[aria-pressed=true] small{color:rgba(14,17,19,.7)}
-.namen .chip{font-size:30px;padding:18px 24px}
+.namefeld{width:100%;padding:18px 20px;border-radius:18px;background:rgba(14,17,19,.7);border:1.5px solid rgba(255,255,255,.22);color:#fff;font-family:var(--h);font-weight:800;text-transform:uppercase;font-size:30px;letter-spacing:.02em}
+.namefeld::placeholder{color:rgba(255,255,255,.3)}.namefeld:focus{outline:none;border-color:var(--go)}
+.nameok{min-height:20px;margin-top:10px;font-size:13px;color:var(--gr);font-weight:600}
 .pop{animation:pop .45s cubic-bezier(.3,1.7,.5,1)}
 @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
 .shake{animation:shake .5s}
@@ -337,7 +339,7 @@ canvas#konfetti{position:fixed;inset:0;z-index:130;pointer-events:none;width:100
   <div class="kicker rv">Vorab</div>
   <h2 class="h rv" style="--i:1">Wer bist du?</h2>
   <p class="lead rv" style="--i:2">Damit Bastian weiß, von wem die Antwort ist. <span class="pflicht">· PFLICHT</span></p>
-  <div class="chips namen" id="namen"></div>
+  <div class="namen rv" id="namen" style="--i:3"><input class="namefeld" id="name" type="text" maxlength="30" autocomplete="given-name" autocapitalize="words" enterkeyhint="done" placeholder="Dein Vorname"><div class="nameok" id="nameok"></div></div>
 </section>
 
 <main id="app"></main>
@@ -376,7 +378,6 @@ canvas#konfetti{position:fixed;inset:0;z-index:130;pointer-events:none;width:100
 const SKRIPT_URL = "https://script.google.com/macros/s/AKfycbyzVHowNVEoV7b_us1SFHi1M-BWIS0BfWMWugeUlTXjjHX42v73Bpm73iodc_JnRUiMvA/exec";          // Web-App-Adresse aus Google Apps Script (endet auf /exec)
 const WHATSAPP_NR = "";         // z. B. "4917612345678" – leer = WhatsApp fragt, an wen
 const ZIEL = SKRIPT_URL || (location.hostname === "localhost" ? "/mock" : "");
-const NAMEN = ["Bastian","Sascha","Maximilian","Jonas","Jannik","Niklas"];
 
 /* ============ INHALTE ============ */
 const SPASS = ["spass","Was steht im Mittelpunkt?",["Wildnis pur","Zelt, kein Netz, nur wir","d4a"],["Leute & Kultur","Nomaden, Gastfamilien, Märkte","d4b"]];
@@ -509,7 +510,14 @@ h += `<section class="blk" id="matchbox" style="background:radial-gradient(120% 
   <p class="lead rv" style="--i:2">Passen deine Ziele zu deinen eigenen Monaten, Tagen, Budget und No-Gos? Bei ⚠️ einfach oben anpassen.</p>
   <div id="match"></div></section>`;
 $("#app").innerHTML = h;
-$("#namen").innerHTML = (hatTest?[...NAMEN,"Test"]:NAMEN).map((n,i)=>opt("name",n,n,"chip rv",`style="--i:${i+3}"`)).join("");
+// Name frei eintippen; gleiche Schreibweise = gleiche Zeile im Sheet (z. B. "jonas " → "Jonas")
+const nameSauber = t => t.toLowerCase().replace(/\s+/g," ").trim().replace(/(^|[\s-])(\p{L})/gu, (m,a,b) => a + b.toUpperCase());
+$("#name").value = A.name || "";
+const nameZeigen = () => { $("#nameok").textContent = A.name ? `✓ Antwort kommt als „${A.name}“ an` : ""; };
+$("#name").addEventListener("input", e => { A.name = nameSauber(e.target.value); speichern(); nameZeigen(); zusammenfassung(); });
+$("#name").addEventListener("blur", e => { e.target.value = A.name; });
+$("#name").addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
+nameZeigen();
 $("#dabei").innerHTML = DABEI.map(([t,c])=>opt("dabei",t,t,"chip "+c)).join("");
 $("#text").value = A.text || "";
 
@@ -668,7 +676,7 @@ function waText() {
   return `🌍 Reise 2027 – Antwort von ${A.name||"?"}\n\n` + ZEILEN.slice(1).map(([k,t]) => `${t}: ${wert(k)||"–"}`).join("\n") + (A.text?`\n\nNoch was: ${A.text}`:"");
 }
 $("#senden").addEventListener("click", async () => {
-  if (!A.name) { $("#status").textContent = "Erst oben deinen Namen antippen ☝️"; const n=$("#wer"); n.scrollIntoView({behavior:"smooth"}); $("#namen").classList.remove("shake"); void $("#namen").offsetWidth; $("#namen").classList.add("shake"); return; }
+  if (!A.name) { $("#status").textContent = "Erst oben deinen Namen eintragen ☝️"; const n=$("#wer"); n.scrollIntoView({behavior:"smooth"}); $("#namen").classList.remove("shake"); void $("#namen").offsetWidth; $("#namen").classList.add("shake"); setTimeout(()=>$("#name").focus(),600); return; }
   const btn = $("#senden"), st = $("#status");
   if (!ZIEL) { st.textContent = "Sammel-Tabelle ist noch nicht verbunden – bitte den WhatsApp-Knopf nehmen."; return; }
   btn.disabled = true; st.textContent = "Wird gesendet …";
